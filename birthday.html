@@ -399,15 +399,13 @@
 
         .typewriter-text {
             font-size: 0.85rem;
-            font-family:'Dancing Script', cursive;
             line-height: 1.6;
-            font-size: 2rem;
             color: #ddd;
-           
             margin: 10px 0;
             text-align: left;
             white-space: pre-wrap;
         }
+
 
 .cursor{
     display:inline-block;
@@ -424,25 +422,7 @@
     }
 }
 
-.fadeLetter{
-    opacity:0;
-    display:inline-block;
-    transform:translateY(8px);
-    animation:letterAppear .35s forwards;
-}
 
-@keyframes letterAppear{
-    to{
-        opacity:1;
-        transform:translateY(0);
-    }
-}
-
-.letter-modal{
-    box-shadow:
-        0 0 30px rgba(255,77,141,.3),
-        0 0 60px rgba(255,77,141,.15);
-}
 
         /* Floating Tap Hearts */
         .click-heart {
@@ -457,22 +437,7 @@
             0% { opacity: 1; transform: translateY(0) scale(0.8); }
             100% { opacity: 0; transform: translateY(-60px) scale(1.4); }
         }
-
-
-.letter-modal{
-    background:
-    linear-gradient(
-        180deg,
-        #fffef9,
-        #fff7ef
-    );
-
-    color:#4a2d2d;
-
-    border-radius:20px;
-
-    border:2px solid #f7d9b6;
-}
+    
 
     </style>
 </head>
@@ -619,13 +584,6 @@
 <div class="typewriter-text" id="typewriter"></div>
 <span id="cursor" class="cursor"></span>
 
-                <!--div class="letter-content">
-                    Happy Birthday, Love ❤️<br><br>
-                    You are the most beautiful part of my life, and I'm so lucky to have you. Your smile makes my days better, and your presence makes everything feel special. I hope your birthday is filled with happiness, love, and endless smiles.<br><br>
-                    Always stay happy — because your happiness means a lot to me.<br><br>
-                    Even though distance has kept us apart this year, not a single day has passed without you being in my thoughts.
-                    It hurts that I can't be there to celebrate with you, to see your smile in person, or to hold your hand on your special day.<br>But please know that my heart is right there with you, no matter how many miles separate us.<br><br>As you're busy pursuing your dreams at school and I'm working hard during my internship, <br><br>I'm reminded that this distance is only temporary. <br><br>Every sacrifice we make today is helping build a brighter future for us tomorrow.<br><br>Until we start being together, carry my love with you wherever you go.<br><br>Kimanye nti NKUYAGALA.
-                </div-->
                 <div style="display: flex; gap: 10px;">
                     <button class="btn-custom" style="font-size: 0.7rem; padding: 8px 16px;" onclick="triggerConfetti()">CELEBRATE 🎉</button>
                     <button class="btn-custom" style="font-size: 0.7rem; padding: 8px 16px; background: #333;" onclick="nextScreen('screen-lock')">RESTART 🔄</button>
@@ -994,7 +952,7 @@
 
 
  /* ------------------ TYPEWRI TER & LETTER LOGIC ------------------ */
-        const letterText ="Happy Birthday, Love ❤️\n\nYou are the most beautiful part of my life, and I'm so lucky to have you. Your smile makes my days better, and your presence makes everything feel special. \n\nI hope your birthday is filled with happiness, love, and endless smiles.\n\n Always stay happy — because your happiness means a lot to me.\n\nEven though distance has kept us apart this year, not a single day has passed without you being in my thoughts.\n\nIt hurts that I can't be there to celebrate with you, to see your smile in person, or to hold your hand on your special day. But please know that my heart is right there with you, no matter how many miles separate us.As you're busy pursuing your dreams at school and I'm working hard during my internship, I'm reminded that this distance is only temporary. Every sacrifice we make today is helping build a brighter future for us tomorrow.Until we start being together, carry my love with you wherever you go.Kimanye nti NKUYAGALA";
+        const letterText ="Happy Birthday, Love ❤️\n\nYou are the most beautiful part of my life, and I'm so lucky to have you.\n\nYour smile makes my days better, and your presence makes everything feel special. \n\nI hope your birthday is filled with happiness, love, and endless smiles.\n\n Always stay happy, coz your happiness means a lot to me.\n\nEven though distance has kept us apart this year, not a single day has passed without you being in my thoughts.\n\nIt hurts that I can't be there to celebrate with you, to see your smile in person, or to hold your hand on your special day.\n\n But please know that my heart is right there with you, no matter how many miles separate us.\n\nAs you're busy pursuing your dreams at school and I'm working hard during my internship, I'm reminded that this distance is only temporary. Every sacrifice we make today is helping build a brighter future for us tomorrow.\n\nUntil we start being together, carry my love with you wherever you go.\n\nKimanye nti NKUYAGALA";
 
         function openLetter() {
             document.getElementById('letter-modal').classList.add('active');
@@ -1021,12 +979,7 @@
             type();
         }
 
-const span = document.createElement("span");
-span.className = "fadeLetter";
-span.textContent = text.charAt(i);
-output.appendChild(span);
 
-setInterval(createHeart,1000);
         /*function openLetter() {
             document.getElementById('letter-modal').classList.add('active');
             triggerConfetti();
