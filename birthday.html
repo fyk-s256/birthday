@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday!</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+    <style>
+        :root {
+            --bg-color: #0b0b0e;
+            --card-bg: rgba(22, 20, 28, 0.85);
+            --accent-pink: #ff4d8d;
+            --accent-glow: rgba(255, 77, 141, 0.4);
+            --text-gold: #ffdf9e;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            background-image: radial-gradient(circle at center, #1f1224 0%, #0b0b0e 100%);
+        }
+
+        /* Screen Wrapper */
+        .app-container {
+            width: 100%;
+            max-width: 420px;
+            height: 90vh;
+            max-height: 800px;
+            background: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 28px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8), 0 0 15px var(--accent-glow);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+
+        /* Views */
+        .screen {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            transform: scale(0.95);
+        }
+
+        .screen.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: scale(1);
+        }
+
+        /* ------------------ LOCK SCREEN ------------------ */
+        .lock-icon {
+            font-size: 3rem;
+            margin-bottom: 8px;
+            text-shadow: 0 0 10px var(--accent-pink);
+        }
+
+        .lock-title {
+            letter-spacing: 3px;
+            font-size: 1.2rem;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+
+        .lock-hint {
+            font-size: 0.75rem;
+            color: #888;
+            margin-bottom: 24px;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .pin-dots {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid var(--accent-pink);
+            transition: background 0.2s;
+        }
+
+        .dot.filled {
+            background: var(--accent-pink);
+            box-shadow: 0 0 10px var(--accent-pink);
+        }
+
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            width: 80%;
+        }
+
+        .key {
+            width: 60px;
+            height: 60px;
+            margin: auto;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.3rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .key:active {
+            background: var(--accent-pink);
+            box-shadow: 0 0 12px var(--accent-pink);
+        }
+
+        /* Modal Hint Photo */
+        .modal {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: 0.3s;
+            z-index: 10;
+        }
+
+        .modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-card {
+            width: 80%;
+            background: #18151f;
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+            position: relative;
+            border: 1px solid var(--accent-pink);
+        }
+
+        .modal-card img {
+            width: 100%;
+            border-radius: 12px;
+            margin-bottom: 12px;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.5);
+            border: none;
+            color: #fff;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        /* ------------------ LOADING SCREEN ------------------ */
+        .character {
+            font-size: 4rem;
+            animation: bounce 1.5s infinite ease-in-out;
+            margin-bottom: 16px;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        /* ------------------ COMMON BUTTON ------------------ */
+        .btn-custom {
+            margin-top: 20px;
+            padding: 10px 28px;
+            background: linear-gradient(45deg, #ff4d8d, #ff758c);
+            border: none;
+            border-radius: 20px;
+            color: white;
+            font-weight: bold;
+            letter-spacing: 2px;
+            cursor: pointer;
+            box-shadow: 0 0 15px var(--accent-glow);
+            transition: transform 0.2s;
+        }
+
+        .btn-custom:active {
+            transform: scale(0.95);
+        }
+
+        /* ------------------ COUNTER DISPLAY ------------------ */
+        .counter-box {
+            display: flex;
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        .unit-box {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .unit-val {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--accent-pink);
+        }
+
+        .unit-label {
+            font-size: 0.65rem;
+            color: #aaa;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* ------------------ GALLERY ------------------ */
+        .gallery-container {
+            width: 100%;
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding: 10px 0;
+            scroll-snap-type: x mandatory;
+        }
+
+        .gallery-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .gallery-card {
+            min-width: 220px;
+            height: 300px;
+            background: #201b2c;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.1);
+            scroll-snap-align: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .gallery-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /*------------------ ENVELOPE / LETTER ------------------*/
+        .envelope-wrapper {
+            width: 200px;
+            height: 140px;
+            background: #2a1b2a;
+            border: 2px solid var(--accent-pink);
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 0 20px var(--accent-glow);
+            position: relative;
+        }
+
+        .letter-modal {
+            position: absolute;
+            inset: 16px;
+            background: #18121e;
+            border-radius: 16px;
+            border: 1px solid var(--accent-pink);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: 0.4s;
+            transform: translateY(20px);
+        }
+
+        .letter-modal.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        .letter-content {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #ddd;
+            margin: 16px 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        /* ------------------ 3D CAKE SCREEN ------------------ */
+        #cake3d-container {
+            width: 260px;
+            height: 240px;
+            margin: 8px 0;
+            cursor: grab;
+        }
+
+        #cake3d-container canvas {
+            border-radius: 16px;
+        }
+
+        #mic-status {
+            min-height: 32px;
+        }
+
+        .wish-flash {
+            color: var(--text-gold) !important;
+            text-shadow: 0 0 10px var(--accent-glow);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+
+        <div>
+            <audio id="music" loop>
+                <source src="music/omega.mp3" type="audio/mpeg">
+            </audio>
+        </div>
+
+        <!-- HINT PHOTO MODAL -->
+        <div class="modal" id="hint-modal">
+            <div class="modal-card">
+                <button class="close-btn" onclick="toggleModal(false)">✕</button>
+                <img src="https://picsum.photos/300/350" alt="Passkey Hint">
+                <p style="font-size: 0.8rem; letter-spacing: 2px;">PASSKEY • 2026</p>
+            </div>
+        </div>
+
+        <!-- SCREEN 1: LOCK SCREEN -->
+        <div class="screen active" id="screen-lock">
+            <div class="lock-icon">🔒</div>
+            <div class="lock-title">LOCKED</div>
+            <div class="lock-hint" onclick="toggleModal(true)">Hint - Click to view passkey</div>
+
+            <div class="pin-dots">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+
+            <div class="keypad">
+                <div class="key" onclick="pressKey('1')">1</div>
+                <div class="key" onclick="pressKey('2')">2</div>
+                <div class="key" onclick="pressKey('3')">3</div>
+                <div class="key" onclick="pressKey('4')">4</div>
+                <div class="key" onclick="pressKey('5')">5</div>
+                <div class="key" onclick="pressKey('6')">6</div>
+                <div class="key" onclick="pressKey('7')">7</div>
+                <div class="key" onclick="pressKey('8')">8</div>
+                <div class="key" onclick="pressKey('9')">9</div>
+                <div class="key" style="visibility: hidden;"></div>
+                <div class="key" onclick="pressKey('0')">0</div>
+                <div class="key" onclick="clearKey()">⌫</div>
+            </div>
+        </div>
+
+        <!-- SCREEN 2: LOADING -->
+        <div class="screen" id="screen-loading">
+            <div class="character">🐼</div>
+            <h3>Loading something special...</h3>
+            <p style="font-size: 0.7rem; color: #888; margin-top: 8px;">★ JUST FOR YOU ★</p>
+        </div>
+
+        <!-- SCREEN 3: WELCOME -->
+        <div class="screen" id="screen-welcome">
+            <h2>It's Your Special Day 🌸</h2>
+            <p>i celebrate you my love</p>
+            <div class="character" style="margin-top:20px;">🧸</div>
+            <p style="font-size: 0.85rem; color: #aaa; margin-top: 10px;">I made something special for you...</p>
+            <button class="btn-custom" onclick="nextScreen('screen-cake')">START ●</button>
+        </div>
+
+        <!-- SCREEN 4: 3D ANIMATED CAKE + MIC BLOWER -->
+        <div class="screen" id="screen-cake">
+            <h2 style="font-size: 1.2rem; color: var(--text-gold);">Make a Wish! 🎂</h2>
+
+            <div id="cake3d-container"></div>
+
+            <p style="font-size: 0.8rem; color: #aaa; text-align: center; margin: 6px 0;" id="mic-status">
+                🎙️ <b>Blow into your phone's mic</b> to blow out the candles!
+            </p>
+
+            <button class="btn-custom" style="font-size: 0.75rem; background: #333;" onclick="blowCandles3D()">Tap to Blow (Fallback)</button>
+            <button class="btn-custom" id="cake-next-btn" style="display:none;" onclick="nextScreen('screen-age')">NEXT ➔</button>
+        </div>
+
+        <!-- SCREEN 5: AGE COUNTER -->
+        <div class="screen" id="screen-age">
+            <div class="character">🎂🎂🎂🎂</div>
+            <h2 style="font-size: 1.2rem;">Happy Birthday My Girl 🌸</h2>
+            <p style="font-size: 0.75rem; color: #888; margin-top: 4px;">You have completed</p>
+
+            <div class="counter-box">
+                <div class="unit-box">
+                    <div class="unit-val">20</div>
+                    <div class="unit-label">Years</div>
+                </div>
+                <div class="unit-box">
+                    <div class="unit-val">0</div>
+                    <div class="unit-label">Months</div>
+                </div>
+                <div class="unit-box">
+                    <div class="unit-val">0</div>
+                    <div class="unit-label">Days</div>
+                    <div class="unit-label">will always remember 20th - june</div>
+                </div>
+            </div>
+
+            <button class="btn-custom" onclick="nextScreen('screen-gallery')">NEXT ➔</button>
+        </div>
+
+        <!-- SCREEN 6: GALLERY -->
+        <div class="screen" id="screen-gallery">
+            <h3>Special Memories</h3>
+            <p style="font-size: 0.75rem; color: #aaa; margin-bottom: 12px;">Swipe for more ➔</p>
+
+            <div class="gallery-container">
+                <div class="gallery-card"><img src="birth/photo5.jpg" alt="Memory"></div>
+                <div class="gallery-card"><img src="birth/photo7.jpg" alt="Memory"></div>
+                <div class="gallery-card"><img src="birth/photo3.jpg" alt="Memory"></div>
+                <div class="gallery-card"><img src="birth/phot3.jpg" alt="Memory"></div>
+                <div class="gallery-card"><img src="birth/photo2.png" alt="Memory"></div>
+                <div class="gallery-card"><img src="birth/photo6.png" alt="Memory"></div>
+                <div class="gallery-card"><img src="birth/photo9.jpg" alt="Memory"></div>
+                <div class="gallery-card"><img src="birth/phot1.jpg" alt="Memory"></div>
+                <div class="gallery-card"><img src="birth/phot2.jpg" alt="Memory"></div>
+                <div class="gallery-card"><img src="birth/photo8.jpg" alt="Memory"></div>
+                <div class="gallery-card"><img src="birth/photo4.png" alt="Memory"></div>
+            </div>
+
+            <button class="btn-custom" onclick="nextScreen('screen-letter')">VIEW MESSAGE ➔</button>
+        </div>
+
+        <!-- SCREEN 7: LETTER / ENVELOPE -->
+        <div class="screen" id="screen-letter">
+            <h3>A LETTER, JUST FOR YOU</h3>
+            <p style="font-size: 0.75rem; color: #aaa; margin-bottom: 24px;">Tap the heart to reveal your message...</p>
+
+            <div class="envelope-wrapper" onclick="openLetter()">
+                <span style="font-size: 2.5rem;">💖</span>
+            </div>
+
+            <div class="letter-modal" id="letter-modal">
+                <h4 style="color: var(--text-gold); font-size: 1.1rem;">JUST FOR YOU, Mi Amor🌸</h4>
+                <p style="font-size: 0.65rem; color: #888;">From my heart to yours</p>
+                <hr style="width: 100%; border-color: rgba(255,255,255,0.1); margin: 10px 0;">
+
+                <div class="letter-content">
+                    Happy Birthday, Love ❤️<br><br>
+                    You are the most beautiful part of my life, and I'm so lucky to have you. Your smile makes my days better, and your presence makes everything feel special. I hope your birthday is filled with happiness, love, and endless smiles.<br><br>
+                    Always stay happy — because your happiness means a lot to me.<br><br>
+                    Even though distance has kept us apart this year, not a single day has passed without you being in my thoughts.
+                    It hurts that I can't be there to celebrate with you, to see your smile in person, or to hold your hand on your special day.<br>But please know that my heart is right there with you, no matter how many miles separate us.<br><br>As you're busy pursuing your dreams at school and I'm working hard during my internship, <br><br>I'm reminded that this distance is only temporary. <br><br>Every sacrifice we make today is helping build a brighter future for us tomorrow.<br><br>Until we start being together, carry my love with you wherever you go.<br><br>Kimanye nti NKUYAGALA.
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-custom" style="font-size: 0.7rem; padding: 8px 16px;" onclick="triggerConfetti()">CELEBRATE 🎉</button>
+                    <button class="btn-custom" style="font-size: 0.7rem; padding: 8px 16px; background: #333;" onclick="nextScreen('screen-lock')">RESTART 🔄</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ===================== 3D CAKE MODULE ===================== -->
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        let renderer, scene, camera, controls;
+        let cakeGroup, candleFlames = [], smokeParticles = [];
+        let candlesLit = true;
+        let cake3DReady = false;
+        let clock = new THREE.Clock();
+
+        function initCake3D() {
+            if (cake3DReady) return;
+            cake3DReady = true;
+
+            const container = document.getElementById('cake3d-container');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            scene = new THREE.Scene();
+            scene.background = null;
+
+            camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100);
+            camera.position.set(0, 3.2, 6.5);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(width, height);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.08;
+            controls.enableZoom = false;
+            controls.enablePan = false;
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 1.6;
+            controls.target.set(0, 1.2, 0);
+
+            const ambient = new THREE.AmbientLight(0x4a3350, 1.1);
+            scene.add(ambient);
+            const fill = new THREE.DirectionalLight(0xffd9ec, 0.5);
+            fill.position.set(3, 5, 4);
+            scene.add(fill);
+
+            cakeGroup = new THREE.Group();
+            scene.add(cakeGroup);
+
+            buildCake();
+            animate();
+
+            window.addEventListener('resize', onResizeCake3D);
+        }
+
+        function onResizeCake3D() {
+            const container = document.getElementById('cake3d-container');
+            if (!container || !renderer) return;
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        }
+
+        function buildCake() {
+            const plateGeo = new THREE.CylinderGeometry(1.9, 1.9, 0.08, 48);
+            const plateMat = new THREE.MeshStandardMaterial({ color: 0xfff1e6, roughness: 0.3, metalness: 0.4 });
+            const plate = new THREE.Mesh(plateGeo, plateMat);
+            plate.position.y = 0;
+            cakeGroup.add(plate);
+
+            const baseGeo = new THREE.CylinderGeometry(1.5, 1.6, 1.0, 48);
+            const baseMat = new THREE.MeshStandardMaterial({ color: 0xe91e63, roughness: 0.55 });
+            const base = new THREE.Mesh(baseGeo, baseMat);
+            base.position.y = 0.55;
+            cakeGroup.add(base);
+
+            const topGeo = new THREE.CylinderGeometry(1.1, 1.2, 0.85, 48);
+            const topMat = new THREE.MeshStandardMaterial({ color: 0xf48fb1, roughness: 0.55 });
+            const top = new THREE.Mesh(topGeo, topMat);
+            top.position.y = 1.42;
+            cakeGroup.add(top);
+
+            // Drip frosting ring
+            const dripMat = new THREE.MeshStandardMaterial({ color: 0xfff5f8, roughness: 0.4 });
+            for (let i = 0; i < 18; i++) {
+                const angle = (i / 18) * Math.PI * 2;
+                const drip = new THREE.Mesh(new THREE.SphereGeometry(0.11, 8, 8), dripMat);
+                drip.position.set(Math.cos(angle) * 1.2, 1.85 - Math.random() * 0.15, Math.sin(angle) * 1.2);
+                cakeGroup.add(drip);
+            }
+
+            const frostTopGeo = new THREE.CylinderGeometry(1.15, 1.15, 0.12, 48);
+            const frostTop = new THREE.Mesh(frostTopGeo, dripMat);
+            frostTop.position.y = 1.9;
+            cakeGroup.add(frostTop);
+
+            // Candles arranged in a circle on top
+            const candleCount = 5;
+            const candleRadius = 0.65;
+            for (let i = 0; i < candleCount; i++) {
+                const angle = (i / candleCount) * Math.PI * 2;
+                const cx = Math.cos(angle) * candleRadius;
+                const cz = Math.sin(angle) * candleRadius;
+
+                const stickMat = new THREE.MeshStandardMaterial({ color: 0xffeb3b, roughness: 0.4 });
+                const stick = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.5, 12), stickMat);
+                stick.position.set(cx, 2.2, cz);
+                cakeGroup.add(stick);
+
+                const wick = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.01, 0.01, 0.08, 6),
+                    new THREE.MeshStandardMaterial({ color: 0x333333 })
+                );
+                wick.position.set(cx, 2.49, cz);
+                cakeGroup.add(wick);
+
+                const flameGroup = new THREE.Group();
+                flameGroup.position.set(cx, 2.6, cz);
+
+                const flameGeo = new THREE.ConeGeometry(0.09, 0.24, 12);
+                const flameMat = new THREE.MeshStandardMaterial({
+                    color: 0xffa726,
+                    emissive: 0xff7a00,
+                    emissiveIntensity: 1.6,
+                    transparent: true,
+                    opacity: 1
+                });
+                const flameMesh = new THREE.Mesh(flameGeo, flameMat);
+                flameMesh.position.y = 0.13;
+                flameGroup.add(flameMesh);
+
+                const light = new THREE.PointLight(0xffa040, 0.9, 3.2, 2);
+                light.position.y = 0.13;
+                flameGroup.add(light);
+
+                cakeGroup.add(flameGroup);
+                candleFlames.push({ group: flameGroup, mesh: flameMesh, light: light, lit: true, seed: Math.random() * 10 });
+            }
+        }
+
+        function spawnSmoke(position) {
+            for (let i = 0; i < 6; i++) {
+                const puff = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.05 + Math.random() * 0.03, 8, 8),
+                    new THREE.MeshBasicMaterial({ color: 0xcccccc, transparent: true, opacity: 0.55 })
+                );
+                puff.position.copy(position);
+                puff.position.x += (Math.random() - 0.5) * 0.08;
+                puff.position.z += (Math.random() - 0.5) * 0.08;
+                puff.userData = {
+                    life: 0,
+                    maxLife: 1.2 + Math.random() * 0.6,
+                    driftX: (Math.random() - 0.5) * 0.3,
+                    driftZ: (Math.random() - 0.5) * 0.3
+                };
+                cakeGroup.add(puff);
+                smokeParticles.push(puff);
+            }
+        }
+
+        function updateSmoke(delta) {
+            for (let i = smokeParticles.length - 1; i >= 0; i--) {
+                const p = smokeParticles[i];
+                p.userData.life += delta;
+                const t = p.userData.life / p.userData.maxLife;
+                p.position.y += delta * 0.5;
+                p.position.x += p.userData.driftX * delta;
+                p.position.z += p.userData.driftZ * delta;
+                p.scale.setScalar(1 + t * 3);
+                p.material.opacity = Math.max(0, 0.55 * (1 - t));
+                if (t >= 1) {
+                    cakeGroup.remove(p);
+                    p.geometry.dispose();
+                    p.material.dispose();
+                    smokeParticles.splice(i, 1);
+                }
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = clock.getDelta();
+            const t = clock.elapsedTime;
+
+            candleFlames.forEach(f => {
+                if (f.lit) {
+                    const flicker = 1 + Math.sin(t * 14 + f.seed) * 0.18 + (Math.random() - 0.5) * 0.12;
+                    f.mesh.scale.set(flicker, flicker * (1 + Math.sin(t * 9 + f.seed) * 0.15), flicker);
+                    f.mesh.rotation.z = Math.sin(t * 6 + f.seed) * 0.15;
+                    f.light.intensity = 0.75 + Math.sin(t * 20 + f.seed) * 0.25 + Math.random() * 0.1;
+                }
+            });
+
+            updateSmoke(delta);
+            if (controls) controls.update();
+            if (renderer) renderer.render(scene, camera);
+        }
+
+        window.blowCandles3D = function () {
+            if (!candlesLit) return;
+            candlesLit = false;
+            candleFlames.forEach(f => {
+                f.lit = false;
+                const worldPos = new THREE.Vector3();
+                f.group.getWorldPosition(worldPos);
+                spawnSmoke(worldPos);
+                // fade the flame out
+                const fadeOut = () => {
+                    f.mesh.material.opacity -= 0.06;
+                    f.light.intensity *= 0.85;
+                    if (f.mesh.material.opacity > 0) {
+                        requestAnimationFrame(fadeOut);
+                    } else {
+                        f.mesh.visible = false;
+                        f.light.intensity = 0;
+                    }
+                };
+                fadeOut();
+            });
+
+            const status = document.getElementById('mic-status');
+            status.innerHTML = '✨ Wish Made! Happy Birthday! ✨';
+            status.classList.add('wish-flash');
+            document.getElementById('cake-next-btn').style.display = 'inline-block';
+            if (window.triggerConfetti) window.triggerConfetti();
+        };
+
+        window.initCake3D = initCake3D;
+        window.resetCake3D = function () {
+            candlesLit = true;
+            candleFlames.forEach(f => {
+                f.lit = true;
+                f.mesh.visible = true;
+                f.mesh.material.opacity = 1;
+                f.light.intensity = 0.9;
+            });
+            const status = document.getElementById('mic-status');
+            status.classList.remove('wish-flash');
+            status.innerHTML = '🎙️ <b>Blow into your phone\'s mic</b> to blow out the candles!';
+            document.getElementById('cake-next-btn').style.display = 'none';
+        };
+    </script>
+
+    <!-- ===================== APP LOGIC ===================== -->
+    <script>
+
+        const CORRECT_PIN = "2026";
+        let currentPin = "";
+        let micInitialized = false;
+
+        function pressKey(num) {
+            if (currentPin.length < 4) {
+                currentPin += num;
+                updateDots();
+            }
+            if (currentPin.length === 4) {
+                setTimeout(checkPin, 200);
+            }
+        }
+
+        function clearKey() {
+            currentPin = currentPin.slice(0, -1);
+            updateDots();
+        }
+
+        function updateDots() {
+            const dots = document.querySelectorAll('.dot');
+            dots.forEach((dot, index) => {
+                if (index < currentPin.length) {
+                    dot.classList.add('filled');
+                } else {
+                    dot.classList.remove('filled');
+                }
+            });
+        }
+
+        function checkPin() {
+            if (currentPin === CORRECT_PIN) {
+                const audio = document.getElementById("music");
+                audio.volume = 0.1;
+                audio.play().catch(err => { console.log("music couldn't start", err); });
+
+                nextScreen('screen-loading');
+                setTimeout(() => {
+                    nextScreen('screen-welcome');
+                }, 2000);
+            } else {
+                alert("Incorrect Pin! Hint: Check 2026");
+                currentPin = "";
+                updateDots();
+            }
+        }
+
+        function toggleModal(show) {
+            document.getElementById('hint-modal').classList.toggle('active', show);
+        }
+
+        function nextScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+
+            if (screenId === 'screen-lock') {
+                currentPin = "";
+                updateDots();
+                document.getElementById('letter-modal').classList.remove('active');
+                if (window.resetCake3D) window.resetCake3D();
+                micInitialized = false;
+            }
+
+            if (screenId === 'screen-cake') {
+                if (window.initCake3D) window.initCake3D();
+                if (!micInitialized) {
+                    micInitialized = true;
+                    initMicrophone();
+                }
+            }
+        }
+
+        /* ------------------ MICROPHONE BLOWER ------------------ */
+        function initMicrophone() {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const analyser = audioContext.createAnalyser();
+                    const microphone = audioContext.createMediaStreamSource(stream);
+                    microphone.connect(analyser);
+                    analyser.fftSize = 256;
+                    const bufferLength = analyser.frequencyBinCount;
+                    const dataArray = new Uint8Array(bufferLength);
+
+                    function checkVolume() {
+                        if (!document.getElementById('screen-cake').classList.contains('active')) {
+                            stream.getTracks().forEach(track => track.stop());
+                            return;
+                        }
+                        analyser.getByteFrequencyData(dataArray);
+                        let sum = 0;
+                        for (let i = 0; i < bufferLength; i++) sum += dataArray[i];
+                        let average = sum / bufferLength;
+
+                        if (average > 45) {
+                            blowCandles3D();
+                            stream.getTracks().forEach(track => track.stop());
+                        } else {
+                            requestAnimationFrame(checkVolume);
+                        }
+                    }
+                    checkVolume();
+                }).catch(() => {
+                    const status = document.getElementById('mic-status');
+                    if (status) status.innerHTML = "Mic unavailable — tap the button below to blow out your candles!";
+                });
+            }
+        }
+
+        function openLetter() {
+            document.getElementById('letter-modal').classList.add('active');
+            triggerConfetti();
+        }
+
+        function triggerConfetti() {
+            confetti({
+                particleCount: 80,
+                spread: 60,
+                origin: { y: 0.7 }
+            });
+        }
+
+    </script>
+</body>
+</html>
