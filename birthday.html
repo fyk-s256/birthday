@@ -289,7 +289,7 @@
             object-fit: cover;
         }
 
-        /*------------------ ENVELOPE / LETTER ------------------*/
+        /*------------------ ENVELOPE / LETTER ------------------
         .envelope-wrapper {
             width: 200px;
             height: 140px;
@@ -334,7 +334,7 @@
             margin: 16px 0;
             max-height: 300px;
             overflow-y: auto;
-        }
+        } */
 
         /* ------------------ 3D CAKE SCREEN ------------------ */
         #cake3d-container {
@@ -356,9 +356,127 @@
             color: var(--text-gold) !important;
             text-shadow: 0 0 10px var(--accent-glow);
         }
+
+
+        /* ------------------ ENVELOPE / TYPEWRITER ------------------ */
+        .envelope-wrapper {
+            width: 180px;
+            height: 120px;
+            background: #2a1b2a;
+            border: 2px solid var(--accent-pink);
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .letter-modal {
+            position: absolute;
+            inset: 12px;
+            background: #18121e;
+            border-radius: 16px;
+            border: 1px solid var(--accent-pink);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: 0.4s;
+            transform: translateY(20px);
+            z-index: 5;
+            overflow-y: auto;
+        }
+
+        .letter-modal.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        .typewriter-text {
+            font-size: 0.85rem;
+            font-family:'Dancing Script', cursive;
+            line-height: 1.6;
+            font-size: 2rem;
+            color: #ddd;
+           
+            margin: 10px 0;
+            text-align: left;
+            white-space: pre-wrap;
+        }
+
+.cursor{
+    display:inline-block;
+    width:3px;
+    height:1.2em;
+    background:#9094cf;
+    margin-left:3px;
+    animation:blink .8s infinite;
+}
+
+@keyframes blink{
+    50%{
+        opacity:0;
+    }
+}
+
+.fadeLetter{
+    opacity:0;
+    display:inline-block;
+    transform:translateY(8px);
+    animation:letterAppear .35s forwards;
+}
+
+@keyframes letterAppear{
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+.letter-modal{
+    box-shadow:
+        0 0 30px rgba(255,77,141,.3),
+        0 0 60px rgba(255,77,141,.15);
+}
+
+        /* Floating Tap Hearts */
+        .click-heart {
+            position: absolute;
+            pointer-events: none;
+            font-size: 1.5rem;
+            animation: floatUp 1s forwards ease-out;
+            z-index: 99;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(0.8); }
+            100% { opacity: 0; transform: translateY(-60px) scale(1.4); }
+        }
+
+
+.letter-modal{
+    background:
+    linear-gradient(
+        180deg,
+        #fffef9,
+        #fff7ef
+    );
+
+    color:#4a2d2d;
+
+    border-radius:20px;
+
+    border:2px solid #f7d9b6;
+}
+
     </style>
 </head>
-<body>
+<body onclick="spawnTapHeart(event)">
 
     <div class="app-container">
 
@@ -496,14 +614,18 @@
                 <h4 style="color: var(--text-gold); font-size: 1.1rem;">JUST FOR YOU, Mi Amor🌸</h4>
                 <p style="font-size: 0.65rem; color: #888;">From my heart to yours</p>
                 <hr style="width: 100%; border-color: rgba(255,255,255,0.1); margin: 10px 0;">
+    
 
-                <div class="letter-content">
+<div class="typewriter-text" id="typewriter"></div>
+<span id="cursor" class="cursor"></span>
+
+                <!--div class="letter-content">
                     Happy Birthday, Love ❤️<br><br>
                     You are the most beautiful part of my life, and I'm so lucky to have you. Your smile makes my days better, and your presence makes everything feel special. I hope your birthday is filled with happiness, love, and endless smiles.<br><br>
                     Always stay happy — because your happiness means a lot to me.<br><br>
                     Even though distance has kept us apart this year, not a single day has passed without you being in my thoughts.
                     It hurts that I can't be there to celebrate with you, to see your smile in person, or to hold your hand on your special day.<br>But please know that my heart is right there with you, no matter how many miles separate us.<br><br>As you're busy pursuing your dreams at school and I'm working hard during my internship, <br><br>I'm reminded that this distance is only temporary. <br><br>Every sacrifice we make today is helping build a brighter future for us tomorrow.<br><br>Until we start being together, carry my love with you wherever you go.<br><br>Kimanye nti NKUYAGALA.
-                </div>
+                </div-->
                 <div style="display: flex; gap: 10px;">
                     <button class="btn-custom" style="font-size: 0.7rem; padding: 8px 16px;" onclick="triggerConfetti()">CELEBRATE 🎉</button>
                     <button class="btn-custom" style="font-size: 0.7rem; padding: 8px 16px; background: #333;" onclick="nextScreen('screen-lock')">RESTART 🔄</button>
@@ -869,10 +991,72 @@
             }
         }
 
+
+
+ /* ------------------ TYPEWRI TER & LETTER LOGIC ------------------ */
+        const letterText ="Happy Birthday, Love ❤️\n\nYou are the most beautiful part of my life, and I'm so lucky to have you. Your smile makes my days better, and your presence makes everything feel special. \n\nI hope your birthday is filled with happiness, love, and endless smiles.\n\n Always stay happy — because your happiness means a lot to me.\n\nEven though distance has kept us apart this year, not a single day has passed without you being in my thoughts.\n\nIt hurts that I can't be there to celebrate with you, to see your smile in person, or to hold your hand on your special day. But please know that my heart is right there with you, no matter how many miles separate us.As you're busy pursuing your dreams at school and I'm working hard during my internship, I'm reminded that this distance is only temporary. Every sacrifice we make today is helping build a brighter future for us tomorrow.Until we start being together, carry my love with you wherever you go.Kimanye nti NKUYAGALA";
+
         function openLetter() {
             document.getElementById('letter-modal').classList.add('active');
-            triggerConfetti();
+            typeWriterEffect();
         }
+
+        function typeWriterEffect() {
+            let i = 0;
+            const speed = 120;
+            const container = document.getElementById("typewriter");
+            container.innerText = "";
+            
+            function type() {
+                if (i < letterText.length) {
+                    container.innerText += letterText.charAt(i);
+                    i++;
+                    setTimeout(type, speed);
+                } else {
+                    document.getElementById('time-capsule').style.display = 'block';
+                    document.getElementById('ending-btns').style.opacity = '1';
+                    startHeartParticleAnimation();
+                }
+            }
+            type();
+        }
+
+const span = document.createElement("span");
+span.className = "fadeLetter";
+span.textContent = text.charAt(i);
+output.appendChild(span);
+
+setInterval(createHeart,1000);
+        /*function openLetter() {
+            document.getElementById('letter-modal').classList.add('active');
+            triggerConfetti();
+        } */
+
+
+         /* ------------------ TAP SPARKLE HEARTS ------------------ */
+        function spawnTapHeart(e) {
+            const heart = document.createElement('div');
+            heart.className = 'click-heart';
+            heart.innerText = '💖';
+            heart.style.left = e.clientX - 12 + 'px';
+            heart.style.top = e.clientY - 12 + 'px';
+            document.body.appendChild(heart);
+            setTimeout(() => heart.remove(), 1000);
+        }
+
+        function triggerConfetti() {
+            confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } });
+        }
+
+        function resetApp() {
+            stopHeartAnimation();
+            nextScreen('screen-lock');
+            currentPin = "";
+            updateDots();
+            document.getElementById('letter-modal').classList.remove('active');
+            document.getElementById('ending-btns').style.opacity = '0';
+        }
+
 
         function triggerConfetti() {
             confetti({
