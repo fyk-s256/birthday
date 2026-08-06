@@ -13,6 +13,8 @@
         }
     }
     </script>
+     <!-- Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root {
             --bg-color: #0b0b0e;
@@ -289,52 +291,7 @@
             object-fit: cover;
         }
 
-        /*------------------ ENVELOPE / LETTER ------------------
-        .envelope-wrapper {
-            width: 200px;
-            height: 140px;
-            background: #2a1b2a;
-            border: 2px solid var(--accent-pink);
-            border-radius: 12px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            box-shadow: 0 0 20px var(--accent-glow);
-            position: relative;
-        }
-
-        .letter-modal {
-            position: absolute;
-            inset: 16px;
-            background: #18121e;
-            border-radius: 16px;
-            border: 1px solid var(--accent-pink);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: 0.4s;
-            transform: translateY(20px);
-        }
-
-        .letter-modal.active {
-            opacity: 1;
-            pointer-events: auto;
-            transform: translateY(0);
-        }
-
-        .letter-content {
-            font-size: 0.9rem;
-            line-height: 1.5;
-            color: #ddd;
-            margin: 16px 0;
-            max-height: 300px;
-            overflow-y: auto;
-        } */
+        
 
         /* ------------------ 3D CAKE SCREEN ------------------ */
         #cake3d-container {
@@ -423,6 +380,33 @@
 }
 
 
+/* ------------------ JAVASCRIPT FLOWER CANVAS ------------------ */
+        #flowerCanvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            background: #0d0a14;
+            border-radius: 28px;
+            z-index: 1;
+        }
+
+        .flower-overlay-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 3;
+            color: #ffb7d5;
+            font-size: 1.6rem;
+            font-weight: 300;
+            letter-spacing: 2px;
+            text-shadow: 0 0 15px rgba(255, 183, 213, 0.6);
+            pointer-events: none;
+            text-align: center;
+            font-family: 'Georgia', serif;
+        }
+
 
         /* Floating Tap Hearts */
         .click-heart {
@@ -441,6 +425,7 @@
 
     </style>
 </head>
+<!--onclick="spawnTapHeart(event)">-->
 <body onclick="spawnTapHeart(event)">
 
     <div class="app-container">
@@ -527,7 +512,7 @@
 
             <div class="counter-box">
                 <div class="unit-box">
-                    <div class="unit-val">20</div>
+                    <div class="unit-val">21</div>
                     <div class="unit-label">Years</div>
                 </div>
                 <div class="unit-box">
@@ -586,9 +571,18 @@
 
                 <div style="display: flex; gap: 10px;">
                     <button class="btn-custom" style="font-size: 0.7rem; padding: 8px 16px;" onclick="triggerConfetti()">CELEBRATE 🎉</button>
-                    <button class="btn-custom" style="font-size: 0.7rem; padding: 8px 16px; background: #333;" onclick="nextScreen('screen-lock')">RESTART 🔄</button>
+                    <button id="flowers-btn" class="btn-custom" style="display:none; font-size: 0.7rem; padding: 8px 16px; background: #333;" onclick="goToFlowerScreen()">FLOWERS FOR YOU 🌸</button>
                 </div>
             </div>
+        </div>
+
+
+        <!-- SCREEN 9: JAVASCRIPT FLOWER WREATH -->
+        <div class="screen" id="screen-flower" style="padding:0;">
+            <canvas id="flowerCanvas"></canvas>
+            <div class="flower-overlay-text">Flowers For You 🌸</div>
+            <button class="btn-custom" style="font-size: 0.7rem; padding: 8px 16px;" onclick="triggerConfetti()">CELEBRATE 🎉</button>
+            <button class="btn-custom" style="position: absolute; bottom: 20px; z-index: 10; font-size: 0.75rem;" onclick="resetApp()">RESTART EXPERIENCE 🔄</button>
         </div>
 
     </div>
@@ -952,10 +946,14 @@
 
 
  /* ------------------ TYPEWRI TER & LETTER LOGIC ------------------ */
-        const letterText ="Happy Birthday, Love ❤️\n\nYou are the most beautiful part of my life, and I'm so lucky to have you.\n\nYour smile makes my days better, and your presence makes everything feel special. \n\nI hope your birthday is filled with happiness, love, and endless smiles.\n\n Always stay happy, coz your happiness means a lot to me.\n\nEven though distance has kept us apart this year, not a single day has passed without you being in my thoughts.\n\nIt hurts that I can't be there to celebrate with you, to see your smile in person, or to hold your hand on your special day.\n\n But please know that my heart is right there with you, no matter how many miles separate us.\n\nAs you're busy pursuing your dreams at school and I'm working hard during my internship, I'm reminded that this distance is only temporary. Every sacrifice we make today is helping build a brighter future for us tomorrow.\n\nUntil we start being together, carry my love with you wherever you go.\n\nKimanye nti NKUYAGALA";
+        const letterText ="Happy Birthday, Love ❤️\n\nYou are the most beautiful part of my life, and I'm so lucky to have you.\n\nYour smile makes my days better, and your presence makes everything feel special. \n\nI hope your birthday is filled with happiness, love, and endless smiles.\n\n Always stay happy, coz your happiness means a lot to me.\n\nEven though distance has kept us apart this year, not a single day has passed without you being in my thoughts.\n\nIt hurts that I can't be there to celebrate with you, to see your smile in person, or to hold your hand on your special day.\n\n But please know that my heart is right there with you, no matter how many miles separate us.\n\nAs you're busy pursuing your dreams at school and I'm working hard during my internship, I'm reminded that this distance is only temporary. Every sacrifice we make today is helping build a brighter future for us tomorrow.\n\nUntil we start being together, carry my love with you wherever you go.\n\nKimanye nti NKUYAGALA 💖💖💖";
 
         function openLetter() {
             document.getElementById('letter-modal').classList.add('active');
+            const flowersBtn = document.getElementById('flowers-btn');
+            if (flowersBtn) {
+                flowersBtn.style.display = 'none';
+            }
             typeWriterEffect();
         }
 
@@ -971,19 +969,117 @@
                     i++;
                     setTimeout(type, speed);
                 } else {
-                    document.getElementById('time-capsule').style.display = 'block';
-                    document.getElementById('ending-btns').style.opacity = '1';
-                    startHeartParticleAnimation();
+                    const flowersBtn = document.getElementById('flowers-btn');
+                    if (flowersBtn) {
+                        flowersBtn.style.display = 'inline-block';
+                    }
                 }
             }
             type();
         }
 
 
-        /*function openLetter() {
-            document.getElementById('letter-modal').classList.add('active');
-            triggerConfetti();
-        } */
+        
+
+
+
+/* ------------------ JAVASCRIPT FLOWER WREATH LOGIC ------------------ */
+        function goToFlowerScreen() {
+            nextScreen('screen-flower');
+            initFlowerWreath();
+        }
+
+        function initFlowerWreath() {
+            const fCanvas = document.getElementById('flowerCanvas');
+            const fCtx = fCanvas.getContext('2d');
+            fCanvas.width = fCanvas.offsetWidth;
+            fCanvas.height = fCanvas.offsetHeight;
+
+            fCtx.clearRect(0, 0, fCanvas.width, fCanvas.height);
+
+            const centerX = fCanvas.width / 2;
+            const centerY = fCanvas.height / 2;
+            const radius = Math.min(fCanvas.width, fCanvas.height) * 0.35;
+            
+            let flowerAngle = 0;
+            const colors = ['#ffb7d5', '#ff758c', '#ff4d8d', '#f48fb1', '#ea80fc'];
+
+            class Flower {
+                constructor(x, y, scale, color) {
+                    this.x = x;
+                    this.y = y;
+                    this.scale = scale;
+                    this.color = color;
+                    this.petals = 5;
+                    this.currentScale = 0;
+                }
+
+                draw() {
+                    if (this.currentScale < this.scale) {
+                        this.currentScale += 0.04;
+                    }
+
+                    fCtx.save();
+                    fCtx.translate(this.x, this.y);
+
+                    // Draw Petals
+                    for (let i = 0; i < this.petals; i++) {
+                        const angle = (Math.PI * 2 / this.petals) * i;
+                        fCtx.save();
+                        fCtx.rotate(angle);
+                        fCtx.beginPath();
+                        fCtx.ellipse(0, 12 * this.currentScale, 6 * this.currentScale, 12 * this.currentScale, 0, 0, Math.PI * 2);
+                        fCtx.fillStyle = this.color;
+                        fCtx.shadowBlur = 10;
+                        fCtx.shadowColor = this.color;
+                        fCtx.fill();
+                        fCtx.restore();
+                    }
+
+                    // Flower Center
+                    fCtx.beginPath();
+                    fCtx.arc(0, 0, 4 * this.currentScale, 0, Math.PI * 2);
+                    fCtx.fillStyle = '#fffdf0';
+                    fCtx.fill();
+                    fCtx.restore();
+                }
+            }
+
+            const flowers = [];
+
+            function bloomWreath() {
+                if (flowerAngle < Math.PI * 2) {
+                    const x = centerX + Math.cos(flowerAngle) * radius + (Math.random() * 10 - 5);
+                    const y = centerY + Math.sin(flowerAngle) * (radius * 0.85) + (Math.random() * 10 - 5);
+                    const scale = Math.random() * 0.5 + 0.7;
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+
+                    flowers.push(new Flower(x, y, scale, color));
+                    flowerAngle += 0.12;
+                }
+
+                fCtx.clearRect(0, 0, fCanvas.width, fCanvas.height);
+                flowers.forEach(f => f.draw());
+
+                if (flowerAngle < Math.PI * 2 + 0.5) {
+                    requestAnimationFrame(bloomWreath);
+                }
+            }
+
+            bloomWreath();
+
+            // Interactive Click to spawn new flowers
+            fCanvas.onclick = function(e) {
+                const rect = fCanvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const scale = Math.random() * 0.6 + 0.8;
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                flowers.push(new Flower(x, y, scale, color));
+                fCtx.clearRect(0, 0, fCanvas.width, fCanvas.height);
+                flowers.forEach(f => f.draw());
+            };
+        }
 
 
          /* ------------------ TAP SPARKLE HEARTS ------------------ */
@@ -1002,14 +1098,21 @@
         }
 
         function resetApp() {
-            stopHeartAnimation();
-            nextScreen('screen-lock');
+            const letterModal = document.getElementById('letter-modal');
+            if (letterModal) {
+                letterModal.classList.remove('active');
+            }
+
+            const flowerCanvas = document.getElementById('flowerCanvas');
+            if (flowerCanvas) {
+                const fCtx = flowerCanvas.getContext('2d');
+                fCtx.clearRect(0, 0, flowerCanvas.width, flowerCanvas.height);
+            }
+
             currentPin = "";
             updateDots();
-            document.getElementById('letter-modal').classList.remove('active');
-            document.getElementById('ending-btns').style.opacity = '0';
+            nextScreen('screen-lock');
         }
-
 
         function triggerConfetti() {
             confetti({
